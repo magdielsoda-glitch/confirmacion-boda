@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmación de Asistencia - Nuestra Boda</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Cormorant Garamond', serif;
+      background: #fffdf9;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.2em;
+      margin-bottom: 5px;
+    }
+    h2 {
+      font-size: 1.3em;
+      font-weight: 400;
+      margin-bottom: 20px;
+      color: #555;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px;
+      font-size: 1.1em;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-family: 'Cormorant Garamond', serif;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    button {
+      background: #333;
+      color: white;
+      border: none;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #555;
+    }
+    .hidden {
+      display: none;
+    }
+    .error {
+      color: red;
+      font-size: 0.9em;
+      margin-top: 5px;
+      text-align: left;
+    }
+    .mensaje-final {
+      font-size: 1.3em;
+      margin-top: 25px;
+      color: #2d3b2d;
+      line-height: 1.4em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Confirmación de Asistencia</h1>
+    <h2>Natanael & Magdiel</h2>
+    
+    <!-- Paso 1: Apellidos -->
+    <div id="step1">
+      <label for="apellido">Escribe los apellidos de tu familia:</label>
+      <input type="text" id="apellido" placeholder="Ej. García López" required>
+      <div id="errorApellido" class="error hidden">Por favor escribe tus apellidos</div>
+      <button onclick="buscarInvitado()">Siguiente</button>
+    </div>
+
+    <!-- Paso 2: Selección de pases -->
+    <div id="step2" class="hidden">
+      <p id="infoPases"></p>
+      <label for="pases">Selecciona cuántos pases usarás:</label>
+      <select id="pases" onchange="mostrarCamposNombres()"></select>
+      <div id="errorPases" class="error hidden">Debes seleccionar una opción</div>
+      
+      <div id="nombresContainer"></div>
+      <div id="errorNombres" class="error hidden">Debes llenar todos los nombres</div>
+      
+      <div id="alergiasContainer" class="hidden">
+        <label for="alergias">¿Algún invitado tiene alergia a algún alimento?</label>
+        <textarea id="alergias" placeholder="Escribe aquí si aplica..."></textarea>
+      </div>
+
+      <label for="mensaje">Déjale un mensaje a los novios:</label>
+      <textarea id="mensaje" placeholder="Escribe aquí tu mensaje..."></textarea>
+
+      <button onclick="confirmar()">Confirmar</button>
+    </div>
+
+    <!-- Paso Final -->
+    <div id="final" class="hidden mensaje-final"></div>
+  </div>
+
+  <script>
+    // Base de datos de invitados (apellido familia -> pases asignados)
+    const invitados = {
+      "lopez diaz":2,
+      "lopez perez": 3,
+      "ismerai alor":1,
+      "ramirez":2,
+      "alor uc":2,
+      "soda prieto":3,
+      "alor prieto":2,
+      "frinne soda":2,
+      "prieto galvan":4,
+      "lopez calderon":5,
+      "carlos vasquez":1,
+      "enif soda":1,
+      "soda poot":5,
+      "ismael prieto":2,
+      "reyes prieto":3,
+      "esperanza reyes":1,
+      "hernandez prieto":3,
+      "gery molina":4,
+      "ruiz maldonado":2,
+      "molina lopez":4,
+      "heidi molina":5,
+      "monse molina":3,
+      "prieto chan":4,
+      "matrinez romero":3,
+      "pech martinez":2,
+      "velazquez lozano":3,
+      "velazquez torres":2,
+      "nataret hernandez":3,
+      "perez nataret":3,
+      "camacho":2,
+      "barrientos hernandez":3,
+      "barrientos valencia":3,
+      "barrientos morales":2,
+      "guzman gomez":5,
+      "parada rasgado":2,
+      "luria cabildo":4,
+      "doyle ortiz":2,
+      "rodriguez ontiveros":3,
+      "raquel":1,
+      "enriqueta hernandez":1,
+      "hiram guzman":1,
+      "garrido acosta":2,
+      "tamay lopez":3,
+      "lopez ortiz":3,
+      "lopez matu":4,
+      "ana lopez":1,
+      "berenice lopez":2,
+      "lilia diaz":1,
+      "georgina lanusa":1,
+      "sibaja cabrera":2,
+      "lopez martinez":2,
+      "andrade millan":4,
+      "nevarez tello":4,
+      "guadalupe cruz":1,
+      "martinez hernandez":2,
+      "gomez puig":3,
+      "rosalia mendoza":1,
+      "rodriguez lopez":2,
+      "nava torres":2,
+      "martinez fabian":2,
+      "manzanillo gomez":4,
+      "luis rendon":5,
+      "mar frias":4,
+      "valentin garcia":2,
+      "boldo":4,
+      "ordoñez cervantes":4,
+      "cervantes martinez":4,
+      "josafat perez":2,
+      "edrei mota":1,
+      "jadued espinosa":1,
+      "gabriel fernandez":1,
+      "antonio taracena":2,
+    };
+
+    let apellidoInvitado = "";
+    let pasesAsignados = 0;
+
+    // Normalizar texto (eliminar acentos y convertir a minúsculas)
+    function normalizar(texto) {
+      return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    }
+
+    // Paso 1: Buscar invitado
+    function buscarInvitado() {
+      const inputApellido = document.getElementById("apellido").value.trim();
+      apellidoInvitado = normalizar(inputApellido);
+
+      if (inputApellido === "") {
+        document.getElementById("errorApellido").classList.remove("hidden");
+        return;
+      } else {
+        document.getElementById("errorApellido").classList.add("hidden");
+      }
+
+      if (invitados[apellidoInvitado]) {
+        pasesAsignados = invitados[apellidoInvitado];
+        document.getElementById("infoPases").innerText = 
+          `Tienes asignados ${pasesAsignados} pases.`;
+
+        const select = document.getElementById("pases");
+        select.innerHTML = "<option value='' disabled selected>Selecciona una opción</option>";
+        for (let i=1; i<=pasesAsignados; i++) {
+          select.innerHTML += `<option value="${i}">${i} pase(s)</option>`;
+        }
+        select.innerHTML += `<option value="0">No podré asistir</option>`;
+
+        document.getElementById("step1").classList.add("hidden");
+        document.getElementById("step2").classList.remove("hidden");
+      } else {
+        alert("Lo sentimos, no encontramos tus apellidos en la lista de invitados.");
+      }
+    }
+
+    // Paso 2: Mostrar campos de nombres y alergias
+    function mostrarCamposNombres() {
+      const cantidad = document.getElementById("pases").value;
+      const contenedor = document.getElementById("nombresContainer");
+      contenedor.innerHTML = "";
+      document.getElementById("errorPases").classList.add("hidden");
+      document.getElementById("errorNombres").classList.add("hidden");
+
+      if (cantidad > 0) {
+        for (let i=1; i<=cantidad; i++) {
+          contenedor.innerHTML += 
+            `<input type="text" id="nombre${i}" placeholder="Nombre del invitado ${i}" required>`;
+        }
+        document.getElementById("alergiasContainer").classList.remove("hidden");
+      } else {
+        document.getElementById("alergiasContainer").classList.add("hidden");
+      }
+    }
+
+    // Confirmación final
+    function confirmar() {
+      const cantidad = document.getElementById("pases").value;
+      let mensajeFinal = "";
+
+      if (cantidad === "") {
+        document.getElementById("errorPases").classList.remove("hidden");
+        return;
+      }
+
+      if (cantidad > 0) {
+        for (let i=1; i<=cantidad; i++) {
+          if (document.getElementById(`nombre${i}`).value.trim() === "") {
+            document.getElementById("errorNombres").classList.remove("hidden");
+            return;
+          }
+        }
+        mensajeFinal = "Gracias por confirmar, te esperamos en nuestro gran día 💍✨";
+      } else {
+        mensajeFinal = "Muchas gracias por confirmar que no podrás asistir a nuestra boda. 💌 Agradecemos tu mensaje y lamentamos que no puedas acompañarnos en ese día tan especial. Te deseamos lo mejor y esperamos verte pronto.";
+      }
+
+      document.getElementById("step2").classList.add("hidden");
+      document.getElementById("final").innerText = mensajeFinal;
+      document.getElementById("final").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
